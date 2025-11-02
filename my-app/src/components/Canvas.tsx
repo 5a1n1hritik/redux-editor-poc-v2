@@ -1,100 +1,101 @@
-"use client";
-import React from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useDrop } from "react-dnd";
-import { useDispatch, useSelector } from "react-redux";
 import { addItem, EditorItem } from "../future/editor/editorSlice";
 import { RootState } from "../store/store";
 
-const RenderItem: React.FC<{ item: EditorItem }> = ({ item }) => {
+const RenderItem = ({ item }: any) => {
   const dispatch = useDispatch();
 
-  const [, drop] = useDrop(
-    () => ({
-      accept: "BOX",
-      drop: (childItem: { type: string }, monitor) => {
-        if (item.type === "container") {
-          if (monitor.didDrop()) return;
+  const [, drop] = useDrop(() => ({
+    accept: "BOX",
+    drop: (childItem: { type: string }, monitor) => {
+      if (item.type === "container") {
+        if (monitor.didDrop()) return;
+        dispatch(addItem({ parentId: item.id, type: childItem.type }));
+      }
+    },
+  }));
 
-          dispatch(
-            addItem({
-              parentId: item.id,
-              newItem: {
-                id: Date.now().toString(),
-                type: childItem.type,
-                content: `${childItem.type} content`,
-              },
-            })
-          );
-        } else {
-          console.warn(
-            `🚫 Can't drop inside ${item.type}, only containers can hold children.`
-          );
-        }
-      },
-      canDrop: () => item.type === "container",
-    }),
-    [item]
-  );
+  const renderComponent = () => {
+    switch (item.type) {
+      case "text":
+        return (
+          <p style={{ color: item.props.color, fontSize: item.props.fontSize }}>
+            {item.props.text}
+          </p>
+        );
+      case "button":
+        return (
+          <button className="px-3 py-1 bg-blue-500 text-white rounded">
+            {item.props.label}
+          </button>
+        );
+      case "image":
+        return (
+          <img
+            src={item.props.src}
+            alt={item.props.alt}
+            style={{ width: item.props.width, height: item.props.height }}
+          />
+        );
+      case "hero":
+        return (
+          <div className="p-6 bg-gray-100 rounded-xl text-center">
+            <h2 className="text-2xl font-bold">{item.props.title}</h2>
+            <p>{item.props.subtitle}</p>
+            <img
+              src={item.props.image}
+              alt=""
+              className="w-full mt-2 rounded-lg"
+            />
+            <button className="mt-3 bg-indigo-500 text-white px-4 py-2 rounded">
+              {item.props.ctaLabel}
+            </button>
+          </div>
+        );
+      case "container":
+        return (
+          <div
+            ref={drop as any}
+            style={{
+              background: item.props.backgroundColor,
+              padding: item.props.padding,
+            }}
+            className="rounded border border-gray-200"
+          >
+            {item.children?.map((child: EditorItem) => (
+              <RenderItem key={child.id} item={child} />
+            ))}
+          </div>
+        );
+      default:
+        return <div>Unknown component</div>;
+    }
+  };
 
-  return (
-    <div
-      ref={drop as unknown as React.Ref<HTMLDivElement>}
-      className="border border-gray-300 bg-white rounded-xl p-3 my-3 shadow-sm hover:shadow-md transition-all duration-200"
-    >
-      <div className="flex items-center justify-between mb-1">
-        <div className="text-sm font-semibold text-gray-700 capitalize">
-          {item.type}
-        </div>
-        <div className="text-xs text-gray-400 italic">Drop inside</div>
-      </div>
-
-      {item.content && (
-        <div className="text-gray-600 text-sm bg-gray-50 rounded p-2 mb-2">
-          {item.content}
-        </div>
-      )}
-
-      {/* Recursive child render */}
-      {item.children && item.children.length > 0 && (
-        <div className="ml-4 pl-3 border-l-2 border-dashed border-gray-300">
-          {item.children.map((child) => (
-            <RenderItem key={child.id} item={child} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  return <div className="m-2">{renderComponent()}</div>;
 };
 
 export default function Canvas() {
-  const dispatch = useDispatch();
   const items = useSelector((state: RootState) => state.editor.items);
+  const dispatch = useDispatch();
 
   const [, drop] = useDrop(() => ({
     accept: "BOX",
     drop: (item: { type: string }, monitor) => {
       if (monitor.didDrop()) return;
-      dispatch(
-        addItem({
-          newItem: {
-            id: Date.now().toString(),
-            type: item.type,
-            content: `${item.type} content`,
-          },
-        })
-      );
+      dispatch(addItem({ type: item.type }));
     },
   }));
 
   return (
     <div
-      ref={drop as unknown as React.Ref<HTMLDivElement>}
+      ref={drop as any}
       className="flex-1 min-h-screen p-6 bg-gradient-to-br from-gray-50 to-gray-100 overflow-auto border-l border-gray-200"
     >
       <div className="text-lg font-semibold text-gray-700 mb-4">
-        🎨 Canvas Area
+        Canvas Area
       </div>
-
       {items.length === 0 ? (
         <div className="h-[70vh] flex items-center justify-center text-gray-400 italic">
           Drag components from the sidebar and drop here.

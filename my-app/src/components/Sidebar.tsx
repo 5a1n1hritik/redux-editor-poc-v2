@@ -1,8 +1,9 @@
 "use client";
+
 import React from "react";
 import { useDrag } from "react-dnd";
 
-const SidebarItem = ({ type, label }: { type: string; label: string }) => {
+const SidebarItem = ({ type }: { type: string }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "BOX",
     item: { type },
@@ -21,7 +22,7 @@ const SidebarItem = ({ type, label }: { type: string; label: string }) => {
       ${isDragging ? "opacity-50 scale-95" : "opacity-100"}
       `}
     >
-      {label}
+      {type.toUpperCase()}
     </div>
   );
 };
@@ -29,15 +30,16 @@ const SidebarItem = ({ type, label }: { type: string; label: string }) => {
 export default function Sidebar() {
   return (
     <div
-      className="w-56 h-full border-r bg-gradient-to-b from-gray-50 to-gray-100 
+      className=" flex w-60 h-full border-r bg-gradient-to-b from-gray-50 to-gray-100 
       p-4 flex flex-col shadow-inner"
     >
-      <h2 className="text-lg font-semibold text-gray-700 mb-4">🧩 Components</h2>
+      <h2 className="text-lg font-semibold text-gray-700 mb-4">Components</h2>
 
-      <SidebarItem type="text" label="Text Block" />
-      <SidebarItem type="image" label="Image Block" />
-      <SidebarItem type="container" label="Container" />
-      <SidebarItem type="button" label="Button" />
+      <SidebarItem type="text" />
+      <SidebarItem type="button" />
+      <SidebarItem type="image" />
+      <SidebarItem type="hero" />
+      <SidebarItem type="container" />
 
       <div className="mt-auto text-xs text-gray-400 text-center border-t pt-2">
         Drag items into canvas →

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+
 import Sidebar from "./Sidebar";
 import Canvas from "./Canvas";
 import JSONPreview from "./JSONPerview";

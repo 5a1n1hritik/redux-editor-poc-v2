@@ -1,15 +1,16 @@
+import { componentDefaults } from "@/componentDefaults";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface EditorItem {
   id: string;
   type: string;
-  content?: string;
+  props: Record<string, any>; // dynamic props for any component
   children?: EditorItem[];
 }
 
 interface EditorState {
   items: EditorItem[];
-  parentId?: string;
+  // parentId?: string;
 }
 
 const initialState: EditorState = {
@@ -32,9 +33,15 @@ const editorSlice = createSlice({
   reducers: {
     addItem: (
       state,
-      action: PayloadAction<{ parentId?: string; newItem: EditorItem }>
+      action: PayloadAction<{ parentId?: string; type: string }>
     ) => {
-      const { parentId, newItem } = action.payload;
+      const { parentId, type } = action.payload;
+      const newItem: EditorItem = {
+        id: Date.now().toString(),
+        type,
+        props: componentDefaults[type] || {},
+      };
+
       if (!parentId) {
         state.items.push(newItem);
       } else {
@@ -45,12 +52,17 @@ const editorSlice = createSlice({
         }
       }
     },
-    updateItem: (state, action: PayloadAction<{ id: string; content: string }>) => {
+    updateProps: (
+      state,
+      action: PayloadAction<{ id: string; props: Record<string, any> }>
+    ) => {
       const item = findItemById(state.items, action.payload.id);
-      if (item) item.content = action.payload.content;
+      if (item) {
+        item.props = { ...item.props, ...action.payload.props };
+      }
     },
   },
 });
 
-export const { addItem, updateItem } = editorSlice.actions;
+export const { addItem, updateProps } = editorSlice.actions;
 export default editorSlice.reducer;
